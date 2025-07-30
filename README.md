@@ -9,19 +9,20 @@ https://www.systemax.jp/en/sai/devdept.html
 
 
 ## Instructions
+
 Put saicrack.py and sai2.exe in the same directory.
-
-
-Run saicrack.py, you will be prompted to enter the system ID, then open SAI2 and execute the menu "Help-System ID".
-
+Run saicrack.py, you will be prompted to enter the system ID.
+Open SAI2 and press Other > System ID ...
+This should open a POP-UP with the system ID!
+Help:
+!
+!
+!
 
 Enter the system ID displayed in SAI2 into the cracker, and then press Enter.
-
-
-Follow the prompts to exit the running SAI2, enter OK in the cracker, and then press Enter.
-
-
-Finally, press Enter to exit the cracker.
+Follow the prompts to exit the running SAI2, type OK in the cmd, and then press Enter.
+You may now close the enter once the prompt appears to press enter!
+Congratulations!
 
 
 ## Instructions
@@ -34,4 +35,4 @@ We will revoke any illegally distributed licenses as soon as we find them.
 Please do not buy our products from unauthorized sellers.
 
 ## Notice
-It is recommended to download sai2 from https://www.systemax.jp/en/sai/devdept.html.
+It is recommended to download sai2 from https://www.systemax.jp/en/sai/devdept.html
