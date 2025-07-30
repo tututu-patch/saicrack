@@ -29,9 +29,9 @@ Help:
 ![Tutorial3](Images/Tuto3.png)
 
 
-Enter the system ID displayed in SAI2 into the cracker, and then press Enter.
+Enter the system ID displayed in SAI2 into the CMD, and then press Enter.
 
-Follow the prompts to exit the running SAI2, type OK in the cmd, and then press Enter.
+Follow the prompts to exit the running SAI2, type OK in the CMD, and then press Enter.
 
 You may now close the enter once the prompt appears to press enter!
 
