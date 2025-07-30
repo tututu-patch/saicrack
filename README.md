@@ -12,14 +12,12 @@ Python - You can find the download here: https://www.python.org/downloads
 
 ## Instructions
 
-Put saicrack.py and sai2.exe in the same directory.
+### 1st: Put saicrack.py and sai2.exe in the same directory.
 
-Run saicrack.py, you will be prompted to enter the system ID.
-
+### 2nd: Run saicrack.py, you will be prompted to enter the system ID.
 (Press Right Click in an empty space in the folder > Open CMD or Right Click the saicrack.py > Open With > Python)
 
-Open SAI2 and press Other > System ID ...
-
+### 3rd: Open SAI2 and press Other > System ID ...
 This should open a POP-UP with the system ID!
 
 Help:
@@ -31,16 +29,16 @@ Help:
 ![Tutorial3](Images/Tuto3.png)
 
 
-Enter the system ID displayed in SAI2 into the CMD, and then press Enter.
+### 4th: Enter the system ID displayed in SAI2 into the CMD, and then press Enter.
 
-Follow the prompts to exit the running SAI2, type OK in the CMD, and then press Enter.
+### 5th: Follow the prompts to exit the running SAI2, type OK in the CMD, and then press Enter.
 
-You may now close the enter once the prompt appears to press enter!
+### 6th: You may now close the enter once the prompt appears to press enter!
 
 Congratulations!
 
 
-## Instructions
+## ATTENTION NOTICE
 www.painttoolsai.cn is an unauthorized seller of our products. We have never authorized anyone to sell our products.
 
 This unauthorized seller buys official licenses for our products and resells one license cheaply to multiple customers for an unfair profit. This action violates the prohibited items in the license agreement of our products.
