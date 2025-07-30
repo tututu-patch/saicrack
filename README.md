@@ -9,6 +9,9 @@ https://www.systemax.jp/en/sai/devdept.html
 
 ## Requirements
 Python - You can find the download here: https://www.python.org/downloads
+Download the .zip above for your computer DEFAULT IS .64
+Download the .py2 by default
+If you have a Python 3 interpreter then download .py3
 
 ## Instructions
 
