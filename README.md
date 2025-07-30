@@ -14,7 +14,8 @@ Python - You can find the download here: https://www.python.org/downloads
 
 Put saicrack.py and sai2.exe in the same directory.
 
-Run saicrack.py, you will be prompted to enter the system ID. (Press Right Click in an empty space in the folder > Open CMD or Right Click the saicrack.py > Open With > Python)
+Run saicrack.py, you will be prompted to enter the system ID. /n
+(Press Right Click in an empty space in the folder > Open CMD or Right Click the saicrack.py > Open With > Python)
 
 Open SAI2 and press Other > System ID ...
 
