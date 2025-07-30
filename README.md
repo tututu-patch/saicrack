@@ -15,9 +15,9 @@ Run saicrack.py, you will be prompted to enter the system ID.
 Open SAI2 and press Other > System ID ...
 This should open a POP-UP with the system ID!
 Help:
-!
-!
-!
+![Tutorial1](Images/Tuto1.png)
+![Tutorial2](Images/Tuto2.png)
+![Tutorial3](Images/Tuto3.png)
 
 Enter the system ID displayed in SAI2 into the cracker, and then press Enter.
 Follow the prompts to exit the running SAI2, type OK in the cmd, and then press Enter.
