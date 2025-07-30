@@ -7,6 +7,8 @@ If you want to download the latest software package, please go to the official w
 
 https://www.systemax.jp/en/sai/devdept.html
 
+## Requirements
+Python - You can find the download here: https://www.python.org/downloads
 
 ## Instructions
 
