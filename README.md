@@ -17,7 +17,7 @@ If you have a Python 3 interpreter then download .py3
 
 ### 1st: Put saicrack.py and sai2.exe in the same directory.
 
-### 2nd: Run saicrack.py, you will be prompted to enter the system ID.
+### 2nd: (To run the saicrack you need to open CMD and use the command ```/py saicrack.py``` ) Run saicrack.py, you will be prompted to enter the system ID.
 (Press Right Click in an empty space in the folder > Open CMD or Right Click the saicrack.py > Open With > Python)
 
 ### 3rd: Open SAI2 and press Other > System ID ...
