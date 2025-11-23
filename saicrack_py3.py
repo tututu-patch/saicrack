@@ -7,7 +7,7 @@ def replaceN():
 	pos = content.find(b"\x83\xB0\xBC\x5C\xD1\x61\xAE\x1E\x3A\x64\x68\x7C\x41\x6D\xB3\x22\x48\x87\xBB\x18\xD7\x2B\xCA\xB0\x89\xCF\xC2\xC6\x5C\x2E\xBB\xCF\x45\x22\x3A\x86\x9C\x86\xA7\xCB\xA9\x05\x84\x0D\xC0\xFA\x0D\x5C\x03\xE7\xBA\x00\x96\x32\x96\xEC\x50\xA5\xBD\xAD\xEF\xFF\xA2\x94\xEC\x1F\xF9\x0E\x39\xA2\x3D\x21\x16\xD7\x61\x85\xDD\x96\x65\xCB\x77\xB4\xFE\x1C\x28\x63\x2F\x75\x74\x2C\x1D\xDB\xC0\x83\xBD\x05\xD8\x9A\x15\xD1\xAF\x1B\xAA\xAE\xB0\xBE\x4C\x17\xC1\xFD\x28\x40\x8C\xD6\xB6\xB7\x8A\x86\xA7\x66\x57\x6A\xFF\xEA\xA7\xDF\x2E\xBF")
 	# no known N is found
 	if pos == -1:
-		print("does not support this version of sai")
+		print("Does not support this version of sai")
 		fsai2.close()
 		return False
 
@@ -22,17 +22,17 @@ def replaceN():
 def create_license():
 	sysid = ""
 	while True:
-		sysid = input("System ID:")
-		
+		sysid = input("System ID:")  # Changed from raw_input to input
+
 		# len
 		if len(sysid) != 8:
 			print("System ID length must be 8 char, therwise unsupported.")
 			continue
-		
+        
 		# validate char
 		lstInvalidChar = re.findall(r"[^0-9a-fA-F]", sysid)
 		if len(lstInvalidChar):
-			print(("invalid char found: %s" % str(lstInvalidChar)[1:-1]))
+			print("Invalid char found: %s" % str(lstInvalidChar)[1:-1])
 			continue
 
 		break
@@ -63,7 +63,7 @@ def create_license():
 		ans >>= 8
 	
 	if len(slc) > 128:
-		print("internal error.")
+		print("Internal error.")
 		return False
 	if len(slc) < 128:
 		slc.extend( [0] * (128-len(slc)) )
@@ -75,7 +75,7 @@ def create_license():
 		fslc.write(strSlc)
 		fslc.close()
 	except Exception as e:
-		print(("write license.slc failed: maybe no write permission.", e))
+		print("Write license.slc failed: maybe no write permission.", e)
 		return False
 
 	return True
@@ -111,12 +111,12 @@ def docrack():
 	try:
 		shutil.copy("sai2.exe", bakfile)
 	except:
-		print("backup failed: maybe no write permission.")
+		print("Backup failed: maybe no write permission.")
 		return False
 
 	# check if backup is success
 	if not os.path.isfile(bakfile):
-		print("backup failed: maybe no write permission.")
+		print("Backup failed: maybe no write permission.")
 		return False
 
 	# create license
@@ -126,14 +126,14 @@ def docrack():
 			os.remove("sai2.exe")
 			os.rename(bakfile, "sai2.exe")
 		except:
-			print("restore backup failed.")
+			print("Restore backup failed.")
 			return False
 
-		print("restore backup success.")
+		print("Restore backup success.")
 		return False
 
 	# close sai
-	while input("close sai if it is opened, type OK to continue:") != "OK":
+	while input("*Close sai if it is opened*, then type OK to continue:") != "OK":
 		pass
 
 	# replaceN
@@ -143,10 +143,10 @@ def docrack():
 			os.remove("sai2.exe")
 			os.rename(bakfile, "sai2.exe")
 		except:
-			print("restore backup failed.")
+			print("Restore backup failed.")
 			return False
 
-		print("restore backup success.")
+		print("Restore backup success.")
 		return False
 
 	return True
@@ -157,7 +157,7 @@ if __name__ == '__main__':
 	try:
 		try:
 			# info
-			print("sai cracker ver 1.0.0\n")
+			print("Sai cracker ver 1.0.1\n")
 			# do crack
 			ret = docrack()
 		except Exception as e:
@@ -167,9 +167,9 @@ if __name__ == '__main__':
 			ret = False
 	finally:
 		if ret is True:
-			print("crack success!")
+			print("Crack success!")
 		else:
-			print("crack failed!")
+			print("Crack failed!")
 	input("Press ENTER key to continue...")
 
- 
+	# end of file
