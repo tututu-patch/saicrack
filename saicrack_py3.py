@@ -1,175 +1,207 @@
-import os, io, shutil, time, re, struct
+# -*- coding: utf-8 -*-
+"""SAI cracker 2.0.0 - Python 3"""
+import os, shutil, time, re, struct
+from pathlib import Path
 
-def replaceN():
-	# open sai2.exe and find N
-	fsai2 = io.FileIO("sai2.exe", 'r+')
-	content = fsai2.read()
-	pos = content.find(b"\x83\xB0\xBC\x5C\xD1\x61\xAE\x1E\x3A\x64\x68\x7C\x41\x6D\xB3\x22\x48\x87\xBB\x18\xD7\x2B\xCA\xB0\x89\xCF\xC2\xC6\x5C\x2E\xBB\xCF\x45\x22\x3A\x86\x9C\x86\xA7\xCB\xA9\x05\x84\x0D\xC0\xFA\x0D\x5C\x03\xE7\xBA\x00\x96\x32\x96\xEC\x50\xA5\xBD\xAD\xEF\xFF\xA2\x94\xEC\x1F\xF9\x0E\x39\xA2\x3D\x21\x16\xD7\x61\x85\xDD\x96\x65\xCB\x77\xB4\xFE\x1C\x28\x63\x2F\x75\x74\x2C\x1D\xDB\xC0\x83\xBD\x05\xD8\x9A\x15\xD1\xAF\x1B\xAA\xAE\xB0\xBE\x4C\x17\xC1\xFD\x28\x40\x8C\xD6\xB6\xB7\x8A\x86\xA7\x66\x57\x6A\xFF\xEA\xA7\xDF\x2E\xBF")
-	# no known N is found
-	if pos == -1:
-		print("Does not support this version of sai")
-		fsai2.close()
-		return False
+OLD_N = bytes.fromhex(
+    "83b0bc5cd161ae1e3a64687c416db3224887bb18d72bcab089cfc2c65c2ebbcf"
+    "45223a869c86a7cba905840dc0fa0d5c03e7ba00963296ec50a5bdadefffa294"
+    "ec1ff90e39a23d2116d76185dd9665cb77b4fe1c28632f75742c1ddbc083bd05"
+    "d89a15d1af1baaaeb0be4c17c1fd28408cd6b6b78a86a766576affeaa7df2ebf"
+)
+NEW_N = bytes.fromhex(
+    "090ae84e68968802862f9e2945e5f50d8b14205ca1d7c8114ee171bcda926115"
+    "e190812f12b2dfbe786092ac7f9a050fa976982f9147e9fceed444f1608de213"
+    "4c60f4e63768f4c7a0d602ea9d92ee39646fa629859d646c66baa4dc5925bd35"
+    "af384f9882add2ad2d9aa4eee85d8849447c1accdc9fb3ddc369343cec828f9b"
+)
+N_OLD = int.from_bytes(OLD_N, "little")
+N_NEW = int.from_bytes(NEW_N, "little")
+E = 65537
+D = 0x30C1B95A4BC06DC9FB29FA981CCCCC5826E7FBEF2F251E41E4F25C79CB3D415A0130E88D12CFFAB07196D39C52229D553FA71C032CBE7900E9CB1C03317B34D70667F886E488A2E4C2DFC3BBC225E4709C2A5CDAF4611CF6399AB07F2B86C854940966B607B16BA1F68A18B5FD94141760AA4AFEDD3965E57475FCE84F5F1D35
 
-	# write back new N
-	fsai2.seek(pos)
-	fsai2.write(b"\x09\x0A\xE8\x4E\x68\x96\x88\x02\x86\x2F\x9E\x29\x45\xE5\xF5\x0D\x8B\x14\x20\x5C\xA1\xD7\xC8\x11\x4E\xE1\x71\xBC\xDA\x92\x61\x15\xE1\x90\x81\x2F\x12\xB2\xDF\xBE\x78\x60\x92\xAC\x7F\x9A\x05\x0F\xA9\x76\x98\x2F\x91\x47\xE9\xFC\xEE\xD4\x44\xF1\x60\x8D\xE2\x13\x4C\x60\xF4\xE6\x37\x68\xF4\xC7\xA0\xD6\x02\xEA\x9D\x92\xEE\x39\x64\x6F\xA6\x29\x85\x9D\x64\x6C\x66\xBA\xA4\xDC\x59\x25\xBD\x35\xAF\x38\x4F\x98\x82\xAD\xD2\xAD\x2D\x9A\xA4\xEE\xE8\x5D\x88\x49\x44\x7C\x1A\xCC\xDC\x9F\xB3\xDD\xC3\x69\x34\x3C\xEC\x82\x8F\x9B")
-	fsai2.close()
+
+def reencrypt_blob(blob):
+    C = int.from_bytes(blob, "little")
+    if not (0 < C < N_OLD):
+        return None
+    m = pow(C, E, N_OLD)
+    be = m.to_bytes(128, "big")
+    if be[:2] != b"\x00\x01" or be.count(0xFF) < 30:
+        return None
+    out = pow(m, D, N_NEW).to_bytes(128, "little")
+    if pow(int.from_bytes(out, "little"), E, N_NEW) != m:
+        raise ValueError("reencrypt verify failed")
+    return out
 
 
-	return True
+def find_and_reencrypt_blobs(data):
+    """Re-encrypt known/likely RSA-wrapped blobs under OLD_N.
 
-def create_license():
-	sysid = ""
-	while True:
-		sysid = input("System ID:")  # Changed from raw_input to input
+    Full-file scanning is expensive; use targeted candidates:
+      1) fixed marker used by new SAI2 AES-key wrap
+      2) 128-byte block immediately before public modulus N (SAI1 SEV0)
+      3) nearby aligned blocks around N (defensive)
+    """
+    ba = bytearray(data)
+    patched = []
+    candidates = set()
 
-		# len
-		if len(sysid) != 8:
-			print("System ID length must be 8 char, therwise unsupported.")
-			continue
-        
-		# validate char
-		lstInvalidChar = re.findall(r"[^0-9a-fA-F]", sysid)
-		if len(lstInvalidChar):
-			print("Invalid char found: %s" % str(lstInvalidChar)[1:-1])
-			continue
+    # 1) new SAI2 wrapped AES material marker (first 32 bytes of ciphertext)
+    mark = bytes.fromhex(
+        "1c6281ebd5b83e4e9c3a5a69b9d445417e7795c4c2e5f6cd7c1569de00888b9a"
+    )
+    pos = 0
+    while True:
+        j = data.find(mark, pos)
+        if j < 0:
+            break
+        candidates.add(j)
+        pos = j + 1
 
-		break
+    # 2/3) around public modulus
+    npos = data.find(OLD_N)
+    if npos >= 0:
+        for delta in (128, 256, 384, 512, 0):
+            p = npos - delta
+            if p >= 0:
+                candidates.add(p)
 
-	# get number M
-	M = "000000010000000000000001000000000000000000000000%s00000001" % sysid
-	try:
-		nM = int(M, 16)
-	except:
-		return False
-	# get number D
-	nD = 0x30C1B95A4BC06DC9FB29FA981CCCCC5826E7FBEF2F251E41E4F25C79CB3D415A0130E88D12CFFAB07196D39C52229D553FA71C032CBE7900E9CB1C03317B34D70667F886E488A2E4C2DFC3BBC225E4709C2A5CDAF4611CF6399AB07F2B86C854940966B607B16BA1F68A18B5FD94141760AA4AFEDD3965E57475FCE84F5F1D35
-	# get number N
-	nN = 0x9B8F82EC3C3469C3DDB39FDCCC1A7C4449885DE8EEA49A2DADD2AD82984F38AF35BD2559DCA4BA666C649D8529A66F6439EE929DEA02D6A0C7F46837E6F4604C13E28D60F144D4EEFCE947912F9876A90F059A7FAC926078BEDFB2122F8190E1156192DABC71E14E11C8D7A15C20148B0DF5E545299E2F86028896684EE80A09
+    for i in sorted(candidates):
+        if i in patched:
+            continue
+        if i + 128 > len(ba):
+            continue
+        blk = bytes(ba[i:i + 128])
+        out = reencrypt_blob(blk)
+        if out is not None:
+            ba[i:i + 128] = out
+            patched.append(i)
+    return bytes(ba), patched
 
-	# calc
-	ans = 1
-	while nD != 0:
-		if nD & 1 == 1:
-			ans = (ans * nM) % nN
-		nD >>= 1
-		nM = (nM * nM) % nN
 
-	# prepare license data
-	slc = []
-	while ans:
-		slc.append(ans & 0xff)
-		ans >>= 8
-	
-	if len(slc) > 128:
-		print("Internal error.")
-		return False
-	if len(slc) < 128:
-		slc.extend( [0] * (128-len(slc)) )
+def create_license(sysid, path="license.slc"):
+    if len(sysid) != 8 or re.findall(r"[^0-9a-fA-F]", sysid):
+        print("System ID must be 8 hex characters.")
+        return False
+    M = int("000000010000000000000001000000000000000000000000%s00000001" % sysid.upper(), 16)
+    ans = pow(M, D, N_NEW)
+    slc = []
+    while ans:
+        slc.append(ans & 0xFF)
+        ans >>= 8
+    if len(slc) > 128:
+        print("Internal error.")
+        return False
+    if len(slc) < 128:
+        slc.extend([0] * (128 - len(slc)))
+    Path(path).write_bytes(struct.pack("<128B", *slc))
+    return True
 
-	# write license
-	try:
-		fslc = io.FileIO("license.slc", "w")
-		strSlc = struct.pack("<128B", *slc)
-		fslc.write(strSlc)
-		fslc.close()
-	except Exception as e:
-		print("Write license.slc failed: maybe no write permission.", e)
-		return False
 
-	return True
+def patch_bytes(data):
+    info = {"n_pos": -1, "blob_positions": [], "patched_n": False}
+    if data.find(OLD_N) < 0:
+        if data.find(NEW_N) >= 0:
+            info["n_pos"] = data.find(NEW_N)
+            info["note"] = "N already patched"
+            info["ok"] = True
+            return data, info
+        info["error"] = "RSA modulus N not found (unsupported version)"
+        return data, info
+
+    data2, blobs = find_and_reencrypt_blobs(data)
+    info["blob_positions"] = blobs
+    pos = data2.find(OLD_N)
+    if pos < 0:
+        info["error"] = "N disappeared unexpectedly"
+        return data, info
+    ba = bytearray(data2)
+    ba[pos:pos + 128] = NEW_N
+    info["n_pos"] = pos
+    info["patched_n"] = True
+    info["ok"] = True
+    return bytes(ba), info
+
+
+def find_exe():
+    for name in ("sai2.exe", "sai.exe"):
+        if Path(name).is_file():
+            return name
+    return None
 
 
 def docrack():
-	# check if file is exist
-	if not os.path.isfile("sai2.exe"):
-		print("sai2.exe doesn't exists.")
-		return False
+    exe = find_exe()
+    if not exe:
+        print("sai2.exe / sai.exe does not exist.")
+        return False
 
-	# remove previous backup
-	for saifile in os.listdir("."):
-		# if not a file
-		if not os.path.isfile(saifile):
-			continue
-		
-		match = re.match(r"sai2.exe.[0-9]{10}.bak", saifile)
-		# do not match
-		if match is None:
-			continue
-		
-		# match whole
-		if match.group(0) == saifile:
-			try:
-				os.remove(saifile)
-			except:
-				pass
+    for saifile in os.listdir("."):
+        if os.path.isfile(saifile) and re.match(r"(sai2|sai)\.exe\.\d{10}\.bak$", saifile):
+            try:
+                os.remove(saifile)
+            except Exception:
+                pass
 
-	# do backup
-	t = time.time()
-	bakfile = "sai2.exe.%s.bak" % int(t)
-	try:
-		shutil.copy("sai2.exe", bakfile)
-	except:
-		print("Backup failed: maybe no write permission.")
-		return False
+    bakfile = "%s.%s.bak" % (exe, int(time.time()))
+    try:
+        shutil.copy(exe, bakfile)
+    except Exception:
+        print("Backup failed: maybe no write permission.")
+        return False
 
-	# check if backup is success
-	if not os.path.isfile(bakfile):
-		print("Backup failed: maybe no write permission.")
-		return False
+    while True:
+        sysid = input("System ID: ").strip()
+        if len(sysid) == 8 and not re.findall(r"[^0-9a-fA-F]", sysid):
+            break
+        print("System ID must be 8 hex chars.")
 
-	# create license
-	if create_license() is False:
-		# try to restore, do nothing if failed
-		try:
-			os.remove("sai2.exe")
-			os.rename(bakfile, "sai2.exe")
-		except:
-			print("Restore backup failed.")
-			return False
+    if not create_license(sysid, "license.slc"):
+        try:
+            os.remove(exe)
+            os.rename(bakfile, exe)
+            print("Restore backup success.")
+        except Exception:
+            print("Restore backup failed.")
+        return False
 
-		print("Restore backup success.")
-		return False
+    try:
+        shutil.copy("license.slc", "sai-crack.slc")
+    except Exception:
+        pass
 
-	# close sai
-	while input("*Close sai if it is opened*, then type OK to continue:") != "OK":
-		pass
+    while input("*Close SAI if it is opened*, then type OK to continue: ").strip() != "OK":
+        pass
 
-	# replaceN
-	if replaceN() is False:
-		# try to restore, do nothing if failed
-		try:
-			os.remove("sai2.exe")
-			os.rename(bakfile, "sai2.exe")
-		except:
-			print("Restore backup failed.")
-			return False
+    data = Path(exe).read_bytes()
+    new_data, info = patch_bytes(data)
+    print("Patch info:", info)
+    if not info.get("ok"):
+        try:
+            os.remove(exe)
+            os.rename(bakfile, exe)
+            print("Restore backup success.")
+        except Exception:
+            print("Restore backup failed.")
+        return False
 
-		print("Restore backup success.")
-		return False
-
-	return True
+    Path(exe).write_bytes(new_data)
+    print("Patched %s (N @ 0x%X, reencrypted blobs: %d)" % (
+        exe, info.get("n_pos", -1), len(info.get("blob_positions", []))))
+    return True
 
 
-if __name__ == '__main__':
-	ret = False
-	try:
-		try:
-			# info
-			print("Sai cracker ver 1.0.1\n")
-			# do crack
-			ret = docrack()
-		except Exception as e:
-			print(e)
-			import traceback
-			traceback.print_exc()
-			ret = False
-	finally:
-		if ret is True:
-			print("Crack success!")
-		else:
-			print("Crack failed!")
-	input("Press ENTER key to continue...")
-
-	# end of file
+if __name__ == "__main__":
+    ret = False
+    try:
+        print("Sai cracker ver 2.0.0\n")
+        ret = docrack()
+    except Exception as e:
+        print(e)
+        import traceback
+        traceback.print_exc()
+        ret = False
+    finally:
+        print("Crack success!" if ret else "Crack failed!")
+        input("Press ENTER key to continue...")
